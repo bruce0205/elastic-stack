@@ -66,7 +66,7 @@ sudo apt install redis-tools
 ![dev-tools.png](images/dev-tools.png)
 
 ```json
-GET redis-systemlog-*/_search 
+GET redis-news/_search
 {
   "query": {
       "bool": {
