@@ -104,12 +104,13 @@ GET redis-news/_search
   ]
 }
 ```
+
 ## 7. elasticsearch api
+### request
 ```bash
 curl --request GET \
   --url http://localhost:9200/redis-news/_search \
   --header 'Content-Type: application/json' \
-  --header 'User-Agent: insomnia/8.6.1' \
   --data '{
   "query": {
       "bool": {
@@ -147,6 +148,17 @@ curl --request GET \
   ]
 }'
 ```
+### response
+![api-response.png](images/api-response.png)
+
++ `hits.total.value`: 資料總筆數
++ `hits.hits[#]._source.tags`: news tags
++ `hits.hits[#]._source.sn`: primary key
++ `hits.hits[#]._source.sort`: 等級
++ `hits.hits[#]._source.title`: news 標點
++ `hits.hits[#]._source.content`: news 內容
++ `hits.hits[#]._source.published`: news發布時間
++ `hits.hits[#]._source.['@timestamp']`: 資料異動時間
 
 ## 99. example data
 ```json
