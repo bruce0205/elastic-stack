@@ -35,7 +35,7 @@ sudo apt install redis-tools
 + kibana: http://localhost:5601
 
 ## 3. Restart service
-> after config changed
+> scenario: after config changed
 
 + stop: `docker compose stop logstash`
 + start: `docker compose start logstash`
@@ -160,7 +160,7 @@ curl --request GET \
 + `hits.hits[#]._source.published`: news發布時間
 + `hits.hits[#]._source.['@timestamp']`: 資料異動時間
 
-## 99. example data
+## 99. example data to redis
 ```json
 {"sn":1,"title":"2024台灣總統大選","content":"當選人:AAA","published":"2024-02-22T20:23:00+08:00","sort":2,"tags":["總統","2024","台灣"]}
 ```
