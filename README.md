@@ -33,11 +33,10 @@
 }
 ```
 ## 5. "Discovery" of kibana
-+ [discovery.png](images/discovery.png)
 ![Diagram outlining the hierarchical organization of the LangChain framework, displaying the interconnected parts across multiple layers.](images/discovery.png "LangChain Architecture Overview")
 
 ## 6. "Dev Tools" of kibana
-+ [dev-tools.png](./images/dev-tools.png)
+![dev-tools.png](images/dev-tools.png)
 
 ```json=
 GET redis-systemlog-*/_search 
