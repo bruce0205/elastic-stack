@@ -1,6 +1,11 @@
+## 架構說明
 1. 當api收到request後，把資料儲存到mariadb的同時，也寫入至redis
 2. logstash 監聽 redis，當有新資料存入時，同步寫入elasticsearch
 3. user透過elasticsearch提供的api，輸入查詢條件，得到特地的資料
+
+### 為何使用redis
++ 因為在目前table schema 上無法判斷資料是否有被異動的欄位，所以利用redis來當message queue
++ 效能與正確性會取決於server的規格，如果資料量很大時 (每分鐘超過1萬筆時)，會有data loss 的可能性
 
 ## 1. Install prerequisite
 ### docker
@@ -75,36 +80,54 @@ curl --request DELETE \
 ## 6. "Dev Tools" of kibana
 ![dev-tools.png](images/dev-tools.png)
 
++ `size`: 回傳資料的筆數限制
++ `from`: 回傳資料的起始位置
++ `query.bool.filter[0].range`: 表示時間區間
++ `query.bool.should`: 表示 `or` condition
++ `sort[0].sort`: 表示以 `sort` 欄位做排序
+
 ```json
 GET redis-news/_search
 {
+  "size": 10,
+  "from": 0,
   "query": {
-      "bool": {
-        "should": [
-          {
-            "wildcard": {
-              "tags.keyword": {
-                "value": "*日本*"
-              }
-            }
-          },
-          {
-            "wildcard": {
-              "title.keyword": {
-                "value": "*日本*"
-              }
-            }
-          },
-          {
-            "wildcard": {
-              "content.keyword": {
-                "value": "*日本*"
-              }
+    "bool": {
+      "filter": [
+        {
+          "range": {
+            "published": {
+              "gte": "2023-02-21T21:53:00+08:00",
+              "lte": "2024-02-24T21:53:00+08:00"
             }
           }
-        ]
-      }
-    },
+        }
+      ],
+      "should": [
+        {
+          "wildcard": {
+            "tags.keyword": {
+              "value": "*2024*"
+            }
+          }
+        },
+        {
+          "wildcard": {
+            "title.keyword": {
+              "value": "*2024*"
+            }
+          }
+        },
+        {
+          "wildcard": {
+            "content.keyword": {
+              "value": "*2024*"
+            }
+          }
+        }
+      ]
+    }
+  },
   "sort": [
     {
       "sort": {
@@ -122,33 +145,45 @@ curl --request GET \
   --url http://localhost:9200/redis-news/_search \
   --header 'Content-Type: application/json' \
   --data '{
+  "size": 10,
+  "from": 0,
   "query": {
-      "bool": {
-        "should": [
-          {
-            "wildcard": {
-              "tags.keyword": {
-                "value": "*日本*"
-              }
-            }
-          },
-          {
-            "wildcard": {
-              "title.keyword": {
-                "value": "*日本*"
-              }
-            }
-          },
-          {
-            "wildcard": {
-              "content.keyword": {
-                "value": "*日本*"
-              }
+    "bool": {
+      "filter": [
+        {
+          "range": {
+            "published": {
+              "gte": "2023-02-21T21:53:00+08:00",
+              "lte": "2024-02-24T21:53:00+08:00"
             }
           }
-        ]
-      }
-    },
+        }
+      ],
+      "should": [
+        {
+          "wildcard": {
+            "tags.keyword": {
+              "value": "*2024*"
+            }
+          }
+        },
+        {
+          "wildcard": {
+            "title.keyword": {
+              "value": "*2024*"
+            }
+          }
+        },
+        {
+          "wildcard": {
+            "content.keyword": {
+              "value": "*2024*"
+            }
+          }
+        }
+      ]
+    }
+  },
   "sort": [
     {
       "sort": {
@@ -167,7 +202,7 @@ curl --request GET \
 + `hits.hits[#]._source.sort`: 等級
 + `hits.hits[#]._source.title`: news 標點
 + `hits.hits[#]._source.content`: news 內容
-+ `hits.hits[#]._source.published`: news發布時間
++ `hits.hits[#]._source.published`: news發布時間，資料格式為`yyyy-MM-ddTHH:mm:ss.SSSZ`
 + `hits.hits[#]._source.['@timestamp']`: 資料異動時間
 
 ## 99. example data to redis
