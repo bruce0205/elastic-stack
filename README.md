@@ -1,3 +1,7 @@
+1. 當api收到request後，把資料儲存到mariadb的同時，也寫入至redis
+2. logstash 監聽 redis，當有新資料存入時，同步寫入elasticsearch
+3. user透過elasticsearch提供的api，輸入查詢條件，得到特地的資料
+
 ## 1. Install prerequisite
 ### docker
 ```bash
@@ -33,6 +37,12 @@ sudo apt install redis-tools
 + bootstrap: `docker compose up -d`
 + elasticsearch: http://localhost:9200
 + kibana: http://localhost:5601
+
+### delete elasticsearch index
+```bash
+curl --request DELETE \
+  --url http://localhost:9200/redis-news
+```
 
 ## 3. Restart service
 > scenario: after config changed
