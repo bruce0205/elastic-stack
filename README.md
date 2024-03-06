@@ -1,11 +1,7 @@
 ## 架構說明
-1. 當api收到request後，把資料儲存到mariadb的同時，也寫入至redis
-2. logstash 監聽 redis，當有新資料存入時，同步寫入elasticsearch
+1. 當api收到request後，把資料儲存到mariadb的同時，也透過http request寫入至logstash
+2. logstash 當有新資料寫入時，會先將input data 做格式化處理後，再寫入至 elasticsearch
 3. user透過elasticsearch提供的api，輸入查詢條件，得到特地的資料
-
-### 為何使用redis
-+ 因為在目前table schema 上無法判斷資料是否有被異動的欄位，所以利用redis來當message queue
-+ 效能與正確性會取決於server的規格，如果資料量很大時 (每分鐘超過1萬筆時)，會有data loss 的可能性
 
 ## 1. Install prerequisite
 ### docker
@@ -33,20 +29,24 @@ sudo apt install docker-ce
 ```bash
 sudo systemctl status docker
 ```
-### redis-cli
-```bash
-sudo apt install redis-tools
-```
 
-## 2. Install elk + redis
+## 2. Install elk
 + bootstrap: `docker compose up -d`
 + elasticsearch: http://localhost:9200
 + kibana: http://localhost:5601
++ logstash: http://localhost:8383
 
 ### delete elasticsearch index
 ```bash
 curl --request DELETE \
-  --url http://localhost:9200/redis-news
+  --url http://localhost:9200/news
+```
+
+### uninstall elk
+> 注意：所有資料將被刪除
+
+```bash
+docker compose down -v
 ```
 
 ## 3. Restart service
@@ -55,11 +55,20 @@ curl --request DELETE \
 + stop: `docker compose stop logstash`
 + start: `docker compose start logstash`
 
-## 4. Insert into redis
-+ connect: `redis-cli -h 127.0.0.1 -p 6379 -a '12345678'`
-+ insert: `rpush news ${json string}`
+## 4. Insert into logstash
+```bash
+curl --request POST \
+  --url http://localhost:8383 \
+  --header 'Content-Type: application/json' \
+  --data '{"sn":7,"title":"台積熊本廠開幕","content":"台積電熊本廠即將在2月24日盛大開幕，二廠也拍板動工，選擇在日本設廠","published":"2024-01-01T03:00:00+08:00","sort":2,"tags":["台積電","2024","台灣"]}'
+```
 
-### data strcuture
+### how to watch logstash
+```bash
+docker logs -f logstash
+```
+
+### data structure
 ```json
 {
   "sn": 3,
@@ -87,7 +96,7 @@ curl --request DELETE \
 + `sort[0].sort`: 表示以 `sort` 欄位做排序
 
 ```json
-GET redis-news/_search
+GET news/_search
 {
   "size": 10,
   "from": 0,
@@ -142,7 +151,7 @@ GET redis-news/_search
 ### request
 ```bash
 curl --request GET \
-  --url http://localhost:9200/redis-news/_search \
+  --url http://localhost:9200/news/_search \
   --header 'Content-Type: application/json' \
   --data '{
   "size": 10,

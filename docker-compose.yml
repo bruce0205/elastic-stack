@@ -33,7 +33,6 @@ services:
     depends_on:
      - elasticsearch
      - kibana
-     - redis
     image: docker.elastic.co/logstash/logstash:${STACK_VERSION}
     container_name: logstash
     volumes:
@@ -44,18 +43,8 @@ services:
     networks:
       - elastic-net
     restart: unless-stopped
-  redis:
-    image: redis:${REDIS_VERSION}
-    container_name: redis
-    restart: unless-stopped
-    command: /bin/sh -c "redis-server /usr/local/etc/redis/redis.conf --requirepass $REDIS_PASSWORD"
-    volumes:
-      - redis-data:/data
-      - ./redis.conf:/usr/local/etc/redis/redis.conf
     ports:
-      - "6379:6379"
-    networks:
-      - elastic-net
+      - 8383:8383
 
 networks:
   elastic-net:
@@ -67,6 +56,4 @@ volumes:
   kibana-data:
     driver: local
   logstash-data:
-    driver: local
-  redis-data:
     driver: local
