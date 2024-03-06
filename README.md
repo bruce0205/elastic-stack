@@ -56,9 +56,13 @@ docker compose down -v
 + start: `docker compose start logstash`
 
 ## 4. Insert into logstash
++ basic token: `base64encode('$username:$password')`
+
+
 ```bash
 curl --request POST \
   --url http://localhost:8383 \
+  --header 'Authorization: Basic bXl1c2VyOjEyMzQ1NDMyMQ==' \
   --header 'Content-Type: application/json' \
   --data '{"sn":7,"title":"台積熊本廠開幕","content":"台積電熊本廠即將在2月24日盛大開幕，二廠也拍板動工，選擇在日本設廠","published":"2024-01-01T03:00:00+08:00","sort":2,"tags":["台積電","2024","台灣"]}'
 ```
