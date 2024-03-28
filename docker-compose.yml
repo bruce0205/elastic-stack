@@ -29,22 +29,6 @@ services:
     ports:
       - 5601:5601
     restart: unless-stopped
-  logstash:
-    depends_on:
-     - elasticsearch
-     - kibana
-    image: docker.elastic.co/logstash/logstash:${STACK_VERSION}
-    container_name: logstash
-    volumes:
-      - logstash-data:/usr/share/logstash/data
-      - "./logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro"
-    environment:
-      - ELASTIC_HOSTS=http://elasticsearch:9200
-    networks:
-      - elastic-net
-    restart: unless-stopped
-    ports:
-      - 8383:8383
 
 networks:
   elastic-net:
@@ -54,6 +38,4 @@ volumes:
   es-data:
     driver: local
   kibana-data:
-    driver: local
-  logstash-data:
     driver: local
